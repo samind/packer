@@ -1,0 +1,72 @@
+{
+  "builders": [
+    {
+      "vm_name": "centos6",
+      "type": "virtualbox-iso",
+      "guest_os_type": "RedHat_64",
+      "iso_url": "http://192.168.1.1/iso/CentOS-6.5-x86_64-bin-DVD1.iso",
+      "iso_checksum": "83221db52687c7b857e65bfe60787838",
+      "iso_checksum_type": "md5",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "1h",
+      "disk_size": "20480",
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+      "guest_additions_path": "VBoxGuestAdditions.iso",
+      "http_directory": "./http",
+      "boot_command": [
+        "<tab> text ks=http://192.168.1.140/ks/ks_packer.cfg<enter><wait>"
+      ],
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "1024"],
+        ["modifyvm", "{{.Name}}", "--cpus", "1"]
+      ]
+    },
+    {
+      "vm_name": "centos6",
+      "type": "vmware-iso",
+      "guest_os_type": "centos-64",
+      "iso_url": "http://192.168.1.1/iso/CentOS-6.5-x86_64-bin-DVD1.iso",
+      "iso_checksum": "83221db52687c7b857e65bfe60787838",
+      "iso_checksum_type": "md5",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "1h",
+      "disk_size": "20480",
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+      "tools_upload_flavor": "linux",
+      "http_directory": "./http",
+      "boot_command": [
+        "<tab> text ks=http://192.168.1.140/ks/ks_packer.cfg<enter><wait>"
+      ],
+      "vmx_data": {
+        "memsize": "1024",
+        "numvcpus": "1",
+        "vhv.enable": "TRUE"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "scripts": [
+        "./scripts/netpersist.sh",
+        "./scripts/publickey.sh",
+        "./scripts/sudoers.sh",
+        "./scripts/sshd.sh",
+        "./scripts/vbox.sh",
+        "./scripts/vfusion.sh",
+        "./scripts/cleanup.sh",
+        "./scripts/zerofill.sh"
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "keep_input_artifact": false,
+      "output": "./artifacts/centos6-{{.Provider}}.box"
+    }
+  ]
+}
